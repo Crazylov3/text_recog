@@ -4,14 +4,14 @@ vocab: 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦ�
 # cpu, cuda, cuda:0
 device: cuda:0
 trainer:
-  batch_size: 32
+  batch_size: 128
   print_every: 200
   valid_every: 4000
   iters: 100000
   # where to save our model for prediction
-  export: ./weights/transformerocr.pth
-  checkpoint: ./checkpoint/transformerocr_checkpoint.pth
-  log: ./train.log
+  export: /content/drive/MyDrive/out_text_recog/weights/transformerocr.pth
+  checkpoint: /content/drive/MyDrive/out_text_recog/checkpoint/transformerocr_checkpoint.pth
+  log: /content/drive/MyDrive/out_text_recog/train.log
   # null to disable compuate accuracy, or change to number of sample to enable validiation while training
   metrics: null
 
@@ -19,9 +19,9 @@ dataset:
   # name of your dataset
   name: data
   # path to annotation and image
-  data_root: /content/data_recog/synth_filtered_recognition/
-  train_annotation: annotation_train.txt
-  valid_annotation: annotation_val_small.txt
+  data_root: /content/data_recog/synth_filtered_recognition
+  train_annotation: train.txt
+  valid_annotation: test.txt
   # resize image to 32 height, larger height will increase accuracy
   image_height: 32
   image_min_width: 32
