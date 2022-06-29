@@ -10,7 +10,8 @@ trainer:
   iters: 100000
   # where to save our model for prediction
   export: /content/drive/MyDrive/out_text_recog/weights/transformerocr.pth
-  checkpoint: /content/drive/MyDrive/out_text_recog/checkpoint/transformerocr_checkpoint.pth
+  checkpoint_best: /content/drive/MyDrive/out_text_recog/checkpoint/transformerocr_checkpoint_best.pth
+  checkpoint_last: /content/drive/MyDrive/out_text_recog/checkpoint/transformerocr_checkpoint_last.pth
   log: /content/drive/MyDrive/out_text_recog/train.log
   # null to disable compuate accuracy, or change to number of sample to enable validiation while training
   metrics: null

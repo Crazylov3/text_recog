@@ -48,7 +48,8 @@ class Trainer():
         self.image_aug = config['aug']['image_aug']
         self.masked_language_model = config['aug']['masked_language_model']
 
-        self.checkpoint = config['trainer']['checkpoint']
+        self.checkpoint_last = config['trainer']['checkpoint_last']
+        self.checkpoint_best = config['trainer']['checkpoint_best']
         self.export_weights = config['trainer']['export']
         self.metrics = config['trainer']['metrics']
         logger = config['trainer']['log']
@@ -136,9 +137,10 @@ class Trainer():
                 self.logger.log(info)
 
                 if acc_full_seq > best_acc:
-                    self.save_checkpoint(self.checkpoint)
+                    self.save_checkpoint(self.checkpoint_best)
                     self.save_weights(self.export_weights)
                     best_acc = acc_full_seq
+                self.save_checkpoint(self.checkpoint_last)
 
     def validate(self):
         self.model.eval()
