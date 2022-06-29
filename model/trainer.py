@@ -136,6 +136,7 @@ class Trainer():
                 self.logger.log(info)
 
                 if acc_full_seq > best_acc:
+                    self.save_checkpoint(self.checkpoint)
                     self.save_weights(self.export_weights)
                     best_acc = acc_full_seq
 
