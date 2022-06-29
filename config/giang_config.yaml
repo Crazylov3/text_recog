@@ -17,11 +17,12 @@ trainer:
 
 dataset:
   # name of your dataset
-  name: data
+  name: ocr_data
   # path to annotation and image
   data_root: /content/synth_filtered
   train_annotation: train.txt
   valid_annotation: test.txt
+  gen_data_path: /content/drive/MyDrive/out_text_recog
   # resize image to 32 height, larger height will increase accuracy
   image_height: 32
   image_min_width: 32
