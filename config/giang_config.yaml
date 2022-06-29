@@ -1,6 +1,6 @@
 # change to list chars of your dataset or use default vietnamese chars
 vocab: 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆfFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨúÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴzZ0123456789!"#$%&''()*+,-./:;<=>?@[\]^_`{|}~ '
-
+#vocab: 'aăâbcdđeêfghijklmnoôơpqrstuưvwxyzAĂÂBCDĐEÊFGHIJKLMNOÔƠPQRSTUƯVWXYZˋˊˀ˜﹒!"#$%&''()*+,-./=\@`~;?<>0123456789:'
 # cpu, cuda, cuda:0
 device: cuda:0
 trainer:
@@ -19,7 +19,7 @@ dataset:
   # name of your dataset
   name: data
   # path to annotation and image
-  data_root: /content/data_recog/synth_filtered_recognition
+  data_root: /content/synth_filtered
   train_annotation: train.txt
   valid_annotation: test.txt
   # resize image to 32 height, larger height will increase accuracy
