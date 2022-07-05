@@ -268,10 +268,15 @@ class Trainer():
         #     self.config['transformer']['d_model'], **self.config['optimizer'])
 
         # self.optimizer.load_state_dict(checkpoint['optimizer'])
-        self.model.load_state_dict(checkpoint['state_dict'])
+        inter = self.intersect(checkpoint['state_dict'], self.model.load_state_dict)
+        self.model.load_state_dict(inter)
         # self.iter = checkpoint['iter']
 
         # self.train_losses = checkpoint['train_losses']
+
+    def intersect(self, da, db, exclude=()):
+        # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values
+        return {k: v for k, v in da.items() if k in db and not any(x in k for x in exclude) and v.shape == db[k].shape}
 
     def save_checkpoint(self, filename):
         state = {'iter': self.iter, 'state_dict': self.model.state_dict(),
