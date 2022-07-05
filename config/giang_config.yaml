@@ -9,10 +9,10 @@ trainer:
   valid_every: 4000
   iters: 100000
   # where to save our model for prediction
-  export: /content/drive/MyDrive/out_text_recog/weights/transformerocr.pth
-  checkpoint_best: /content/drive/MyDrive/out_text_recog/checkpoint/transformerocr_checkpoint_best.pth
-  checkpoint_last: /content/drive/MyDrive/out_text_recog/checkpoint/transformerocr_checkpoint_last.pth
-  log: /content/drive/MyDrive/out_text_recog/train.log
+  export: /content/drive/MyDrive/real_text_recog_out/weights/transformerocr.pth
+  checkpoint_best: /content/drive/MyDrive/real_text_recog_out/checkpoint/transformerocr_checkpoint_best.pth
+  checkpoint_last: /content/drive/MyDrive/real_text_recog_out/checkpoint/transformerocr_checkpoint_last.pth
+  log: /content/drive/MyDrive/real_text_recog_out/train.log
   # null to disable compuate accuracy, or change to number of sample to enable validiation while training
   metrics: null
 
@@ -20,10 +20,10 @@ dataset:
   # name of your dataset
   name: ocr_data
   # path to annotation and image
-  data_root: /content/synth_filtered
+  data_root: /content/real_text_recog
   train_annotation: train.txt
   valid_annotation: test.txt
-  gen_data_path: /content/drive/MyDrive/out_text_recog
+  gen_data_path: /content/drive/MyDrive/real_text_recog_out
   # resize image to 32 height, larger height will increase accuracy
   image_height: 32
   image_min_width: 32
