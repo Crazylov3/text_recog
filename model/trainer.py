@@ -268,7 +268,7 @@ class Trainer():
         #     self.config['transformer']['d_model'], **self.config['optimizer'])
 
         # self.optimizer.load_state_dict(checkpoint['optimizer'])
-        inter = self.intersect(checkpoint['state_dict'], self.model.load_state_dict)
+        inter = self.intersect(checkpoint['state_dict'], self.model.load_state_dict())
         self.model.load_state_dict(inter)
         # self.iter = checkpoint['iter']
 
