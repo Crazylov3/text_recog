@@ -14,11 +14,11 @@ from loader.dataloader_v1 import DataGen
 from loader.dataloader import OCRDataset, ClusterRandomSampler, Collator
 from torch.utils.data import DataLoader
 from einops import rearrange
-from torch.optim.lr_scheduler import CosineAnnealingLR, CyclicLR, OneCycleLR
-
+from torch.optim.lr_scheduler import *
+from torch.utils.tensorboard import SummaryWriter
 import torchvision
-
-from tool.utils import compute_accuracy
+from tqdm import tqdm
+from tool.utils import compute_accuracy, AverageMeter
 from PIL import Image
 import numpy as np
 import os
@@ -65,14 +65,9 @@ class Trainer():
         self.iter = 0
 
         self.optimizer = AdamW(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09)
-        self.scheduler = OneCycleLR(self.optimizer, total_steps=self.num_iters, **config['optimizer'])
-        #        self.optimizer = ScheduledOptim(
-        #            Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
-        #            #config['transformer']['d_model'],
-        #            512,
-        #            **config['optimizer'])
-
+        self.scheduler = eval(config['lr']['name'])(self.optimizer, config['lr']['params'])
         self.criterion = LabelSmoothingLoss(len(self.vocab), padding_idx=self.vocab.pad, smoothing=0.1)
+        self.writer = SummaryWriter(config['trainer']['tensorboard_log'])
 
         transforms = None
         if self.image_aug:
@@ -85,62 +80,51 @@ class Trainer():
             self.valid_gen = self.data_gen(os.path.join(self.gen_data_path, 'valid_{}'.format(self.dataset_name)),
                                            self.data_root, self.valid_annotation, masked_language_model=False)
 
-        self.train_losses = []
+        self.loss = 0
 
     def train(self):
         total_loss = 0
-
-        total_loader_time = 0
-        total_gpu_time = 0
         best_acc = 0
+        acc_full_seq, acc_per_char = 0, 0
+        acc_metric = AverageMeter()
 
         data_iter = iter(self.train_gen)
-        for i in range(self.num_iters):
-            self.iter += 1
-
-            start = time.time()
+        pdar = tqdm(range(self.iter, self.num_iters), "Training")
+        for i in pdar:
+            self.iter = 1
 
             try:
                 batch = next(data_iter)
             except StopIteration:
                 data_iter = iter(self.train_gen)
                 batch = next(data_iter)
-
-            total_loader_time += time.time() - start
-
-            start = time.time()
             loss = self.step(batch)
-            total_gpu_time += time.time() - start
 
-            total_loss += loss
-            self.train_losses.append((self.iter, loss))
+            acc_metric.update(loss)
+            # self.train_losses.append((self.iter, loss))
 
-            if self.iter % self.print_every == 0:
-                info = 'iter: {:06d} - train loss: {:.3f} - lr: {:.2e} - load time: {:.2f} - gpu time: {:.2f}'.format(
-                    self.iter,
-                    total_loss / self.print_every, self.optimizer.param_groups[0]['lr'],
-                    total_loader_time, total_gpu_time)
-
-                total_loss = 0
-                total_loader_time = 0
-                total_gpu_time = 0
-                print(info)
-                self.logger.log(info)
-
-            if self.valid_annotation and self.iter % self.valid_every == 0:
-                val_loss = self.validate()
+            if self.valid_annotation and i % self.valid_every == 0:
+                self.loss = self.validate()
                 acc_full_seq, acc_per_char = self.precision(self.metrics)
 
-                info = 'iter: {:06d} - valid loss: {:.3f} - acc full seq: {:.4f} - acc per char: {:.4f}'.format(
-                    self.iter, val_loss, acc_full_seq, acc_per_char)
-                print(info)
-                self.logger.log(info)
+                tags = ['train_loss', 'lr', 'valid_loss', 'acc_full_seq', 'acc_per_char']
+                vals = [acc_metric.avg, self.optimizer.param_groups[0]['lr'], self.loss, acc_full_seq, acc_per_char]
+                for t, v in zip(tags, vals):
+                    self.writer.add_scalar(t, v, i)
 
                 if acc_full_seq > best_acc:
                     self.save_checkpoint(self.checkpoint_best)
                     self.save_weights(self.export_weights)
                     best_acc = acc_full_seq
                 self.save_checkpoint(self.checkpoint_last)
+
+            pdar.set_postfix({
+                'train_loss': acc_metric.avg,
+                'lr': self.optimizer.param_groups[0]['lr'],
+                'valid_loss': self.loss,
+                'acc_full_seq': acc_full_seq,
+                'acc_per_char': acc_per_char
+            })
 
     def validate(self):
         self.model.eval()
@@ -154,7 +138,7 @@ class Trainer():
                                                                batch['tgt_padding_mask']
 
                 outputs = self.model(img, tgt_input, tgt_padding_mask)
-                #                loss = self.criterion(rearrange(outputs, 'b t v -> (b t) v'), rearrange(tgt_output, 'b o -> (b o)'))
+                # loss = self.criterion(rearrange(outputs, 'b t v -> (b t) v'), rearrange(tgt_output, 'b o -> (b o)'))
 
                 outputs = outputs.flatten(0, 1)
                 tgt_output = tgt_output.flatten()
@@ -260,19 +244,16 @@ class Trainer():
                     plt.show()
                     return
 
-    def load_checkpoint(self, filename):
+    def load_checkpoint(self, filename, resume=False):
         checkpoint = torch.load(filename)
+        if resume:
+            self.scheduler.load_state_dict(checkpoint['scheduler'])
+            self.optimizer.load_state_dict(checkpoint['optimizer'])
+            self.loss = checkpoint['loss']
+            self.iter = checkpoint['iter']
 
-        # optim = ScheduledOptim(
-        #     Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
-        #     self.config['transformer']['d_model'], **self.config['optimizer'])
-        # #
-        self.optimizer.load_state_dict(checkpoint['optimizer'])
         inter = self.intersect(checkpoint['state_dict'], self.model.state_dict())
         self.model.load_state_dict(inter)
-        self.iter = checkpoint['iter']
-        #
-        self.train_losses = checkpoint['train_losses']
 
     def intersect(self, da, db, exclude=()):
         # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values
@@ -280,7 +261,7 @@ class Trainer():
 
     def save_checkpoint(self, filename):
         state = {'iter': self.iter, 'state_dict': self.model.state_dict(),
-                 'optimizer': self.optimizer.state_dict(), 'train_losses': self.train_losses}
+                 'optimizer': self.optimizer.state_dict(), 'loss': self.loss, 'scheduler': self.scheduler.state_dict()}
 
         path, _ = os.path.split(filename)
         os.makedirs(path, exist_ok=True)
@@ -368,7 +349,7 @@ class Trainer():
 
         loss.backward()
 
-        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 1)
+        torch.nn.utils.clip_grad_norm_(self.model.parameters(), 5)
 
         self.optimizer.step()
         self.scheduler.step()

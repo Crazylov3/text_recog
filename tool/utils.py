@@ -5,6 +5,7 @@ import numpy as np
 import uuid
 import requests
 
+
 def download_weights(id_or_url, cached=None, md5=None, quiet=False):
     if id_or_url.startswith('http'):
         url = id_or_url
@@ -19,6 +20,7 @@ def download_config(id):
     r = requests.get(url)
     config = yaml.safe_load(r.text)
     return config
+
 
 def compute_accuracy(ground_truth, predictions, mode='full_sequence'):
     """
@@ -74,3 +76,25 @@ def compute_accuracy(ground_truth, predictions, mode='full_sequence'):
         raise NotImplementedError('Other accuracy compute mode has not been implemented')
 
     return avg_accuracy
+
+
+class AverageMeter:
+    """Computes and stores the average and current value"""
+
+    def __init__(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def reset(self):
+        self.val = 0
+        self.avg = 0
+        self.sum = 0
+        self.count = 0
+
+    def update(self, val, n=1):
+        self.val = val
+        self.sum += val * n
+        self.count += n
+        self.avg = self.sum / self.count

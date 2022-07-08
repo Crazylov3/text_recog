@@ -8,6 +8,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=True, help='see example at ')
     parser.add_argument('--checkpoint', required=False, help='your checkpoint')
+    parser.add_argument('--resume', action='store_true')
 
     args = parser.parse_args()
     config = Cfg.load_config_from_file(args.config)
@@ -15,7 +16,7 @@ def main():
     trainer = Trainer(config)
 
     if args.checkpoint:
-        trainer.load_checkpoint(args.checkpoint)
+        trainer.load_checkpoint(args.checkpoint, args.resume)
 
     trainer.train()
 

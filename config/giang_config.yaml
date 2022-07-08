@@ -2,15 +2,16 @@ vocab: 'aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦ�
 
 device: cuda:0
 trainer:
-  batch_size: 128
+  batch_size: 16
   print_every: 200
-  valid_every: 4000
+  valid_every: 2000
   iters: 100000
   # where to save our model for prediction
   export: /content/drive/MyDrive/real_text_recog_out/weights/transformerocr.pth
   checkpoint_best: /content/drive/MyDrive/real_text_recog_out/checkpoint/transformerocr_checkpoint_best.pth
   checkpoint_last: /content/drive/MyDrive/real_text_recog_out/checkpoint/transformerocr_checkpoint_last.pth
   log: /content/drive/MyDrive/real_text_recog_out/train.log
+  tensorboard_log: /content/drive/MyDrive/real_text_recog_out
   # null to disable compuate accuracy, or change to number of sample to enable validiation while training
   metrics: null
 
@@ -79,3 +80,8 @@ optimizer:
   max_lr: 0.001
   pct_start: 0.
 
+lr:
+  name: CosineAnnealingLR
+  params:
+    T_max: 100000
+    eta_min: 0.000001
