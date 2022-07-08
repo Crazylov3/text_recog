@@ -266,13 +266,13 @@ class Trainer():
         # optim = ScheduledOptim(
         #     Adam(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09),
         #     self.config['transformer']['d_model'], **self.config['optimizer'])
-
-        # self.optimizer.load_state_dict(checkpoint['optimizer'])
+        # #
+        self.optimizer.load_state_dict(checkpoint['optimizer'])
         inter = self.intersect(checkpoint['state_dict'], self.model.state_dict())
         self.model.load_state_dict(inter)
-        # self.iter = checkpoint['iter']
-
-        # self.train_losses = checkpoint['train_losses']
+        self.iter = checkpoint['iter']
+        #
+        self.train_losses = checkpoint['train_losses']
 
     def intersect(self, da, db, exclude=()):
         # Dictionary intersection of matching keys and shapes, omitting 'exclude' keys, using da values

@@ -3,6 +3,7 @@ import argparse
 from model.trainer import Trainer
 from tool.config import Cfg
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', required=True, help='see example at ')
@@ -15,8 +16,9 @@ def main():
 
     if args.checkpoint:
         trainer.load_checkpoint(args.checkpoint)
-        
+
     trainer.train()
+
 
 if __name__ == '__main__':
     main()
