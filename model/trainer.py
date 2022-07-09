@@ -65,7 +65,7 @@ class Trainer():
         self.iter = 0
 
         self.optimizer = AdamW(self.model.parameters(), betas=(0.9, 0.98), eps=1e-09)
-        self.scheduler = eval(config['lr']['name'])(self.optimizer, config['lr']['params'])
+        self.scheduler = eval(config['lr']['name'])(self.optimizer, **config['lr']['params'])
         self.criterion = LabelSmoothingLoss(len(self.vocab), padding_idx=self.vocab.pad, smoothing=0.1)
         self.writer = SummaryWriter(config['trainer']['tensorboard_log'])
 
