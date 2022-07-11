@@ -72,7 +72,7 @@ seq_modeling: seq2seq
 transformer:
   encoder_hidden: 256
   decoder_hidden: 256
-  img_channel: 256
+  img_ch16annel: 256
   decoder_embedded: 256
   dropout: 0.1
 
